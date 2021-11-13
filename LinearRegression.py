@@ -10,11 +10,7 @@ class LinearRegression:
         x_t = np.transpose(x_with_b)
         r_matrix = np.zeros([x_t.shape[0], x_t.shape[0]], int)
         np.fill_diagonal(r_matrix, l2_regulation)
-        try:
-            self.weights = np.dot(np.dot(np.linalg.inv(np.dot(x_t, x_with_b) + r_matrix), x_t), y)
-        except np.linalg.LinAlgError:
-            return -1
-        return 0
+        self.weights = np.dot(np.dot(np.linalg.inv(np.dot(x_t, x_with_b) + r_matrix), x_t), y)
 
     def predict(self, x: np.array) -> np.ndarray:
         x = np.c_[np.ones(x.shape[0]), x]
@@ -35,8 +31,6 @@ class LinearRegression:
             test_x = x[cv * i:cv * i + cv]
             test_y = y[cv * i:cv * i + cv]
             result = self.fit(train_x, train_y)
-            if result == -1:
-                return -1
             mean_score += self.score(test_x, test_y)
         mean_score /= cv
         return mean_score
@@ -49,5 +43,3 @@ class RansacRegression(LinearRegression):
         inlaers_x = x[points]
         inlaers_y = y[points]
         super().fit(inlaers_x, inlaers_y)
-        score = self.score(inlaers_x, inlaers_y)
-        return score, points
