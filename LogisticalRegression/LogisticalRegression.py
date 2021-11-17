@@ -4,7 +4,7 @@ class LogisticalRegression:
     def __init__(self):
         self.weights = []
 
-    def fit(self, x, y, epochs, lr=0.001):
+    def fit(self, x: np.ndarray, y: np.ndarray, epochs: int, lr: int = 0.001):
         x_b = np.c_[np.ones(x.shape[0]), x]
         self.weights = np.zeros(x_b.shape[1])
         for i in range(epochs):
@@ -14,14 +14,14 @@ class LogisticalRegression:
             gradient = (x_b * rs).sum(axis=0)
             self.weights += gradient * lr
 
-    def predict(self, x):
+    def predict(self, x: np.ndarray) -> np.ndarray:
         def sigmoid(x):
             return 1 / (1 + np.exp(-x))
         
         x = np.c_[np.ones(x.shape[0]), x]
         return sigmoid(x @ self.weights)
 
-    def score(self, x, y, metric='r2'):
+    def score(self, x: np.ndarray, y: np.ndarray, metric: str = 'r2') -> int:
         pred = self.predict(x)
         tp = len(np.where((np.round(pred) == 1) & (y == 1))[0])
         tn = len(np.where((np.round(pred) == 0) & (y == 0))[0])
