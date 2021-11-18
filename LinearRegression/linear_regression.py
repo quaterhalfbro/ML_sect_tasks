@@ -12,18 +12,18 @@ class LinearRegression:
         np.fill_diagonal(r_matrix, l2_regulation)
         self.weights = np.dot(np.dot(np.linalg.inv(np.dot(x_t, x_with_b) + r_matrix), x_t), y)
 
-    def predict(self, x: np.array) -> np.ndarray:
+    def predict(self, x: np.ndarray) -> np.ndarray:
         x = np.c_[np.ones(x.shape[0]), x]
         return np.dot(x, self.weights)
 
-    def square_error(self, x: np.array, y: np.array) -> float:
+    def square_error(self, x: np.ndarray, y: np.ndarray) -> float:
         return np.sum((self.predict(x) - y) ** 2)
 
-    def score(self, x: np.array, y: np.array) -> float:
+    def score(self, x: np.ndarray, y: np.ndarray) -> float:
         y_mean = y.mean()
         return 1 - self.square_error(x, y) / np.sum((y - y_mean) ** 2)
 
-    def cross_val_score(self, x: np.array, y: np.array, cv: int = 5) -> float:
+    def cross_val_score(self, x: np.ndarray, y: np.ndarray, cv: int = 5) -> float:
         mean_score = 0
         for i in range(cv):
             train_x = np.delete(x, range(cv * i, cv * i + cv), axis=0)

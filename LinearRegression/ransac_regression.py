@@ -1,5 +1,5 @@
 import numpy as np
-from LinearRegression import LinearRegression
+from linear_regression import LinearRegression
 
 
 class RansacRegression(LinearRegression):
