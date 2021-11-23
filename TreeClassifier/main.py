@@ -29,7 +29,7 @@ class DecisionTree:
                         best_entropy = entropy
                         class_1 = first_class
                         class_2 = second_class
-                        best_split = lambda x: x[feature] >= split
+                        best_split = (feature, split)
             return [best_split, self.search_best_splits(x[class_1], y[class_1], cur_depth + 1),
                     self.search_best_splits(x[class_2], y[class_2], cur_depth + 1)]
 
@@ -40,27 +40,26 @@ class DecisionTree:
         def tree_predict(split, x):
             if type(split) is not list:
                 return split
-            if split[0](x):
+            if x[split[0][0]] >= split[0][1]:
                 return tree_predict(split[1], x)
             return tree_predict(split[2], x)
 
         if self.splits == []:
             raise Exception('NotFittedError')
-        return tree_predict(self.splits, x)
+        return np.array([tree_predict(self.splits, i) for i in x])
 
+    def score(self, x: np.ndarray, y: np.ndarray) -> dict:
+        pred = self.predict(x)
+        metrics = {'acc': 0, 'r2': 0, 'precision': 0, 'recall': 0, 'f1': 0}
+        tp = len(np.where((np.round(pred) == 1) & (y == 1))[0])
+        tn = len(np.where((np.round(pred) == 0) & (y == 0))[0])
+        fn = len(np.where((np.round(pred) == 1) & (y == 0))[0])
+        fp = len(np.where((np.round(pred) == 0) & (y == 1))[0])
+        metrics['precision'] = tp / (tp + fp)
+        metrics['recall'] = tp / (tp + fn)
+        metrics['f1'] = (2 * metrics['precision'] * metrics['recall'] /
+                         (metrics['precision'] + metrics['recall']))
+        metrics['acc'] = (tp + tn) / (tp + tn + fn + fp)
+        metrics['r2'] = 1 - np.sum(np.power(pred - y, 2)) / (y.var() * len(y))
+        return metrics
 
-model = DecisionTree(10)
-data_x = np.array([[1, 1, 2],
-                  [1, 1, 1],
-                  [1, 4, 3],
-                  [2, 1, 1],
-                  [1, 2, 2],
-                  [3, 1, 1],
-                  [2, 2, 1],
-                  [2, 3, 1],
-                  [2, 2, 2],
-                  [3, 3, 1],
-                  [3, 2, 2]])
-data_y = np.array([0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1])
-model.fit(data_x, data_y)
-print(model.predict(np.array([1, 1, 2])))
