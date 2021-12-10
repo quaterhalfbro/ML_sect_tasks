@@ -62,4 +62,3 @@ class DecisionTree:
         metrics['acc'] = (tp + tn) / (tp + tn + fn + fp)
         metrics['r2'] = 1 - np.sum(np.power(pred - y, 2)) / (y.var() * len(y))
         return metrics
-
