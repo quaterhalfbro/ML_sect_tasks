@@ -1,4 +1,14 @@
 import numpy as np
+from typing import List, Dict, Union
+
+
+def entropy(y: np.ndarray) -> float:
+    counts = np.unique(y, return_counts=True)[1] / len(y)
+    return -np.sum(np.nan_to_num(counts * np.log2(counts), 0))
+
+
+class NotFittedError(Exception):
+    pass
 
 
 class DecisionTree:
@@ -8,30 +18,26 @@ class DecisionTree:
         self.splits = []
         self.split_number = 0
 
-    def entropy(self, y: np.ndarray) -> float:
-        counts = np.unique(y, return_counts=True)[1] / len(y)
-        return -np.sum(np.nan_to_num(counts * np.log2(counts), 0))
-
-    def search_best_splits(self, x: np.ndarray, y: np.ndarray, cur_depth=0) -> list:
-        if cur_depth == self.max_depth or self.entropy(y) <= self.min_entropy:
+    def search_best_splits(self, x: np.ndarray, y: np.ndarray, cur_depth=0) -> List[Union[tuple, list]]:
+        if cur_depth == self.max_depth or entropy(y) <= self.min_entropy:
             values, counts = np.unique(y, return_counts=True)
             return values[counts.argmax()]
-        else:
-            best_entropy = 2
-            for feature in range(x.shape[1]):
-                for split in np.unique(x[:, feature]):
-                    first_class = np.where(x[:, feature] >= split)[0]
-                    second_class = np.where(x[:, feature] < split)[0]
-                    y1 = y[first_class]
-                    y2 = y[second_class]
-                    entropy = (self.entropy(y1) * len(y1) + self.entropy(y2) * len(y2)) / len(y)
-                    if entropy < best_entropy:
-                        best_entropy = entropy
-                        class_1 = first_class
-                        class_2 = second_class
-                        best_split = (feature, split)
-            return [best_split, self.search_best_splits(x[class_1], y[class_1], cur_depth + 1),
-                    self.search_best_splits(x[class_2], y[class_2], cur_depth + 1)]
+        best_entropy = 2
+        for feature in range(x.shape[1]):
+            for split in np.unique(x[:, feature]):
+                first_class = np.where(x[:, feature] >= split)[0]
+                second_class = np.where(x[:, feature] < split)[0]
+                y1 = y[first_class]
+                y2 = y[second_class]
+                entropy_value = (entropy(y1) * len(y1) + entropy(y2) * len(y2)) / len(y)
+                if entropy_value >= best_entropy:
+                    continue
+                best_entropy = entropy_value
+                class_1 = first_class
+                class_2 = second_class
+                best_split = (feature, split)
+        return [best_split, self.search_best_splits(x[class_1], y[class_1], cur_depth + 1),
+                self.search_best_splits(x[class_2], y[class_2], cur_depth + 1)]
 
     def fit(self, x: np.ndarray, y: np.ndarray):
         self.splits = self.search_best_splits(x, y)
@@ -45,10 +51,10 @@ class DecisionTree:
             return tree_predict(split[2], x)
 
         if self.splits == []:
-            raise Exception('NotFittedError')
+            raise NotFittedError
         return np.array([tree_predict(self.splits, i) for i in x])
 
-    def score(self, x: np.ndarray, y: np.ndarray) -> dict:
+    def score(self, x: np.ndarray, y: np.ndarray) -> Dict[str, float]:
         pred = self.predict(x)
         metrics = {'acc': 0, 'r2': 0, 'precision': 0, 'recall': 0, 'f1': 0}
         tp = len(np.where((np.round(pred) == 1) & (y == 1))[0])
