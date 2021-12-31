@@ -18,6 +18,20 @@ class KNNClassifier:
             y_pred[i] = unique[np.argmax(counts)]
         return y_pred
 
+    def predict_proba(self, x:np.ndarray) -> np.ndarray:
+        distances = np.array([np.sum((self.x - i) ** 2, axis=1) for i in x])
+        nearest_neighbors = self.y[np.argpartition(distances, self.n_neighbors, axis=1)[:, :self.n_neighbors]]
+        classes = np.unique(self.y)
+        y_pred = np.zeros((x.shape[0], classes.shape[0])).astype('float64')
+        classes_ind = dict()
+        for i in range(classes.shape[0]):
+            classes_ind[classes[i]] = i
+        for i in range(x.shape[0]):
+            unique, counts = np.unique(nearest_neighbors[i], return_counts=True)
+            for obj, count in zip(unique, counts):
+                y_pred[i, classes_ind[obj]] = count / self.n_neighbors
+        return y_pred
+
     def score(self, x: np.ndarray, y: np.ndarray) -> dict:
         pred = self.predict(x)
         metrics = {'acc': 0, 'r2': 0, 'precision': 0, 'recall': 0, 'f1': 0}
