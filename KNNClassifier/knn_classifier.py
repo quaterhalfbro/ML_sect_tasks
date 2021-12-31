@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Dict
 
 
 class KNNClassifier:
@@ -32,7 +33,7 @@ class KNNClassifier:
                 y_pred[i, classes_ind[obj]] = count / self.n_neighbors
         return y_pred
 
-    def score(self, x: np.ndarray, y: np.ndarray) -> dict:
+    def score(self, x: np.ndarray, y: np.ndarray) -> Dict[str, float]:
         pred = self.predict(x)
         metrics = {'acc': 0, 'r2': 0, 'precision': 0, 'recall': 0, 'f1': 0}
         tp = len(np.where((np.round(pred) == 1) & (y == 1))[0])
